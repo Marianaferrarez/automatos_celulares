@@ -8,6 +8,7 @@ from torch.utils.data import TensorDataset
 from torch.utils.data import DataLoader
 
 from data.dataset_loader import DatasetLoader
+from data.dataset_builder import DatasetBuilder
 from models.transformer import FireTransformer
 from visualization.loss_plot import LossPlot
 from visualization.confusion_matrix_plot import ConfusionMatrixPlot
@@ -23,6 +24,13 @@ CLASS_NAMES = ["TREE", "BURNING", "BURNED"]
 loader = DatasetLoader(
     "forest_fire_dataset.csv"
 )
+
+# If the dataset CSV is missing in the expected locations, generate it
+resolved = loader._resolve_csv_path()
+if not resolved.exists():
+    builder = DatasetBuilder(rows=40, cols=40, steps=15)
+    df = builder.build()
+    df.to_csv(resolved, index=False)
 
 X_train, X_test, y_train, y_test, scaler = (
     loader.load_data()
