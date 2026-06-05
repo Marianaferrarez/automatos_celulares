@@ -58,3 +58,24 @@ Os principais arquivos são salvos em `implementacao_final/forest_fire_CA/result
 
 - O projeto usa caminhos absolutos internos ao pacote para evitar problemas com `cwd`.
 - O dataset e os resultados podem ser regenerados a qualquer momento executando `main.py`.
+
+## Reproduzir o treino localmente
+
+Use um ambiente virtual e instale as dependências listadas em `implementacao_final/forest_fire_CA/requirements.txt`.
+
+Exemplo (PowerShell):
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r implementacao_final/forest_fire_CA/requirements.txt
+python implementacao_final/forest_fire_CA/train.py
+```
+
+Ou execute o fluxo completo (gera dataset e treina):
+
+```powershell
+python implementacao_final/forest_fire_CA/main.py
+```
+
+Os artefatos gerados irão para `implementacao_final/forest_fire_CA/results/`.
