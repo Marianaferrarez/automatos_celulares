@@ -1,9 +1,9 @@
               precision    recall  f1-score   support
 
-         TREE       0.86      1.00      0.92     11797
-      BURNING       0.00      0.00      0.00      1994
-       BURNED       1.00      1.00      1.00     26209
+        TREE       0.56      0.61      0.59       303
+     BURNING       0.59      0.54      0.57       314
+      BURNED       1.00      1.00      1.00       279
 
-    accuracy                           0.95     40000
-   macro avg       0.62      0.67      0.64     40000
-weighted avg       0.91      0.95      0.93     40000
+    accuracy                           0.71       896
+   macro avg       0.72      0.72      0.72       896
+weighted avg       0.71      0.71      0.71       896

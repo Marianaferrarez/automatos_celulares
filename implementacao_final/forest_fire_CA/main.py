@@ -13,8 +13,8 @@ ROOT_DIR = Path(__file__).resolve().parent
 
 ROWS = 40
 COLS = 40
-STEPS = 15
-ANIMATION_FRAMES = 10
+STEPS = 50
+ANIMATION_FRAMES = 50
 
 
 def main():
