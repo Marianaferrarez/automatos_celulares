@@ -51,8 +51,11 @@ Os principais arquivos são salvos em `implementacao_final/forest_fire_CA/result
 - `state_distribution.png`
 - `loss_curve.png`
 - `confusion_matrix.png`
-- `fire_spread.gif`
 - `classification_report.txt`
+- `fire_spread.gif` — animação da simulação Transformer-CA
+- `grid_comparison.png` — comparação espacial entre Transformer-CA e
+  a versão analítica do CA rodadas no mesmo ambiente sintético
+  (referência, já que não há fogo real para comparar)
 
 ## Observações
 

@@ -78,6 +78,80 @@ class DatasetGenerator:
             )
             < probability
         ).astype(int)
+
+    def generate_flammable_mask(
+        self,
+        elevation,
+        protected_center_radius=3,
+    ):
+        """
+        Define áreas NONFLAMMABLE (Regra 2 do artigo): solo rochoso,
+        água, afloramentos ou trilhas/aceiros, onde não há material
+        combustível e a célula nunca pode pegar fogo.
+
+        Modelado como manchas espacialmente coerentes (não ruído
+        pixel-a-pixel) usando um campo de ruído suavizado, para imitar
+        clareiras e corpos d'água espalhados pela paisagem.
+
+        Nota de design: NÃO usamos "elevação muito alta" como critério
+        de rocha, porque `generate_elevation` sempre posiciona o pico
+        da montanha no centro da grid — e o foco de ignição também
+        nasce no centro (ver ForestCA.__init__). Acoplar rocha a
+        elevação alta cercaria o foco de fogo com NONFLAMMABLE quase
+        sempre, apagando o incêndio no primeiro passo. As manchas aqui
+        usam só ruído espacial, independente de onde o fogo começa.
+
+        `protected_center_radius` reserva uma área ao redor do centro
+        da grid (onde o foco de ignição nasce) como sempre inflamável,
+        evitando que o sorteio aleatório isole o foco por azar.
+
+        Retorna uma máscara booleana: True = inflamável, False = não.
+        """
+
+        # Campo de ruído suave (baixa frequência) via convolução simples
+        raw_noise = np.random.rand(self.rows, self.cols)
+
+        kernel_size = max(3, min(self.rows, self.cols) // 8)
+        kernel = np.ones((kernel_size, kernel_size)) / (kernel_size ** 2)
+
+        smooth_noise = self._smooth(raw_noise, kernel)
+
+        # Clareiras/água/rocha: ~15% da área, definidas pelo ruído suave
+        non_flammable = smooth_noise > np.quantile(smooth_noise, 0.85)
+
+        flammable = ~non_flammable
+
+        # Protege a vizinhança do ponto de ignição para garantir que
+        # o incêndio sempre tenha por onde se espalhar inicialmente.
+        center_i, center_j = self.rows // 2, self.cols // 2
+        r = protected_center_radius
+        i_lo, i_hi = max(0, center_i - r), min(self.rows, center_i + r + 1)
+        j_lo, j_hi = max(0, center_j - r), min(self.cols, center_j + r + 1)
+        flammable[i_lo:i_hi, j_lo:j_hi] = True
+
+        return flammable   # True = inflamável
+
+    @staticmethod
+    def _smooth(field, kernel):
+        """
+        Convolução 2D 'same' via FFT (rápida, sem dependências externas
+        além do numpy.fft).
+        """
+        rows, cols = field.shape
+        kh, kw = kernel.shape
+
+        pad_rows = rows + kh - 1
+        pad_cols = cols + kw - 1
+
+        field_f = np.fft.rfft2(field, s=(pad_rows, pad_cols))
+        kernel_f = np.fft.rfft2(kernel, s=(pad_rows, pad_cols))
+
+        conv = np.fft.irfft2(field_f * kernel_f, s=(pad_rows, pad_cols))
+
+        start_r = (kh - 1) // 2
+        start_c = (kw - 1) // 2
+
+        return conv[start_r:start_r + rows, start_c:start_c + cols]
     
     def generate_elevation(self):
 
@@ -166,6 +240,12 @@ class DatasetGenerator:
             )
         )
 
+        flammable_mask = (
+            self.generate_flammable_mask(
+                elevation
+            )
+        )
+
         return {
             "temperature": temperature,
             "humidity": humidity,
@@ -176,4 +256,5 @@ class DatasetGenerator:
             "elevation": elevation,
             "slope": slope,
             "vegetation": vegetation,
+            "flammable_mask": flammable_mask,
         }
