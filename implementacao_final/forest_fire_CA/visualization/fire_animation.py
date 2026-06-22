@@ -6,16 +6,13 @@ from pathlib import Path
 
 RESULTS_DIR = Path(__file__).resolve().parents[1] / "results"
 
-# Estados: 0=NONFLAMMABLE, 1=TREE, 2=BURNING, 3=BURNED
 STATE_COLORS = ["#7A7A7A", "#228B22", "#FF6600", "#3B2A1A"]
 STATE_LABELS = ["NONFLAMMABLE", "TREE", "BURNING", "BURNED"]
 
 
 class FireAnimation:
-
     @staticmethod
     def animate(frames):
-
         RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
         cmap = mcolors.ListedColormap(STATE_COLORS)

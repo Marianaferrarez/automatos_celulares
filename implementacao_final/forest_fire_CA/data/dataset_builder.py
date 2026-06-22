@@ -13,43 +13,20 @@ from visualization.fire_animation import FireAnimation
 
 RESULTS_DIR = Path(__file__).resolve().parents[1] / "results"
 
-
 def _flatten_sequence(sequence):
-    """
-    Achata (seq_len, n_features) em um dict de colunas nomeadas
-    pos0_temperature, pos0_humidity, ..., pos8_current_state.
-    Posição 8 é sempre a célula central (ver data/neighborhood.py).
-    """
     flat = {}
     for pos in range(SEQ_LEN):
         for f_idx, fname in enumerate(FEATURE_NAMES):
             flat[f"pos{pos}_{fname}"] = sequence[pos, f_idx]
     return flat
 
-
 class DatasetBuilder:
-    """
-    Gera o dataset de treino rodando várias simulações de incêndio
-    independentes, cada uma com seu próprio ambiente (elevação, vento,
-    etc). Isso é essencial: se o dataset vier de uma única simulação,
-    variáveis "globais" como wind_direction ficam constantes e o
-    StandardScaler aprende uma média/desvio que não generaliza para
-    nenhum outro ambiente (variância zero ⇒ normalização explode).
-
-    Cada amostra agora inclui a vizinhança de Moore completa (8
-    vizinhos + célula central), para que o Transformer tenha uma
-    sequência real sobre a qual aplicar self-attention, em vez de uma
-    única célula (o que reduzia o modelo a uma MLP disfarçada).
-    """
-
     def __init__(
         self,
         rows=100,
         cols=100,
         steps=30,
         n_simulations=8,
-        # Threshold baixo garante propagação suficiente durante a
-        # geração do dataset (não é o threshold da simulação final).
         generation_threshold=0.15,
     ):
         self.rows = rows
@@ -59,7 +36,6 @@ class DatasetBuilder:
         self.generation_threshold = generation_threshold
 
     def _build_single_simulation(self, environment):
-
         ca = ForestCA(
             environment=environment,
             rows=self.rows,
@@ -82,10 +58,6 @@ class DatasetBuilder:
 
                     current_state = current_grid[i, j]
 
-                    # Não coleta amostras de células já queimadas nem
-                    # de células sem material combustível (Regras 2 e
-                    # 3 — a transição é trivial e não precisa ser
-                    # aprendida pelo Transformer).
                     if current_state in (BURNED, NONFLAMMABLE):
                         continue
 
@@ -119,13 +91,6 @@ class DatasetBuilder:
         return samples
 
     def build(self):
-        """
-        Roda `n_simulations` simulações independentes, cada uma com seu
-        próprio ambiente sorteado do zero, e concatena as amostras.
-        Garante que wind_direction (e demais variáveis) tenham variância
-        real no dataset final.
-        """
-
         all_samples = []
 
         for sim_idx in range(self.n_simulations):
@@ -141,7 +106,6 @@ class DatasetBuilder:
         return df
 
     def preview_animation(self, steps=50):
-
         generator = DatasetGenerator(self.rows, self.cols)
         environment = generator.generate_all()
 

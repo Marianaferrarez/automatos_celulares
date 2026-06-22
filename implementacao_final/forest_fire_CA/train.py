@@ -16,14 +16,12 @@ from models.transformer import FireTransformer
 from visualization.loss_plot import LossPlot
 from visualization.confusion_matrix_plot import ConfusionMatrixPlot
 
-
 BATCH_SIZE = 256
 EPOCHS = 20
 LEARNING_RATE = 0.001
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 SAVED_DIR = Path(__file__).resolve().parent / "saved_models"
 CLASS_NAMES = ["TREE", "BURNING", "BURNED"]
-
 
 loader = DatasetLoader("forest_fire_dataset.csv")
 
@@ -32,9 +30,6 @@ resolved = loader._resolve_csv_path()
 _needs_rebuild = not resolved.exists()
 
 if resolved.exists():
-    # Checa se o CSV é do schema antigo (vizinhança não incluída).
-    # Isso acontece se o usuário já tinha um dataset gerado antes da
-    # adição da vizinhança de Moore como entrada do Transformer.
     import pandas as _pd
     _header = _pd.read_csv(resolved, nrows=0).columns.tolist()
     if "pos0_temperature" not in _header:
@@ -112,9 +107,6 @@ for epoch in range(EPOCHS):
 
 LossPlot.plot(losses)
 
-# ------------------------------------------------------------------ #
-# Avaliação final                                                     #
-# ------------------------------------------------------------------ #
 all_preds, all_targets = [], []
 
 model.eval()
@@ -137,11 +129,9 @@ report = classification_report(
 )
 print(report)
 
-# Kappa e IoU (métricas do artigo)
 kappa = cohen_kappa_score(all_targets, all_preds)
 print(f"Kappa: {kappa:.4f}")
 
-# IoU para a classe BURNING (índice 1)
 tp = cm[1, 1]
 fp = cm[0, 1] + cm[2, 1]
 fn = cm[1, 0] + cm[1, 2]
@@ -159,9 +149,6 @@ metrics_text = (
     metrics_text, encoding="utf-8"
 )
 
-# ------------------------------------------------------------------ #
-# Salva modelo + scaler (necessário para o CA usar o Transformer)     #
-# ------------------------------------------------------------------ #
 SAVED_DIR.mkdir(parents=True, exist_ok=True)
 
 torch.save(model.state_dict(), SAVED_DIR / "fire_transformer.pth")

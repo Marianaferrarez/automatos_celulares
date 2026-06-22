@@ -9,9 +9,7 @@ STATE_LABELS = {
     3: "BURNED"
 }
 
-
 class StateDistribution:
-
     @staticmethod
     def plot(df):
 

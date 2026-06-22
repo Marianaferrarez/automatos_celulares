@@ -15,10 +15,8 @@ DISPLAY_LABELS = [
 
 
 class ConfusionMatrixPlot:
-
     @staticmethod
     def plot(cm):
-
         RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
         disp = ConfusionMatrixDisplay(

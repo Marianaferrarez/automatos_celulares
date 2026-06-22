@@ -4,7 +4,6 @@ from pathlib import Path
 RESULTS_DIR = Path(__file__).resolve().parents[1] / "results"
 
 class LossPlot:
-    
     @staticmethod
     def plot(losses):
 
